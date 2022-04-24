@@ -10,8 +10,12 @@ function MainHelp(){
    echo "actions:"
    echo "    read          executing a sequantial read task with fio."
    echo "    write         executing a sequantial write task with fio."
+   echo "    rw            executing a task that mixing read and write"
+   echo "                  with fio."
    echo "    randread      executing a random read task with fio."
    echo "    randwrite     executing a random write task with fio."
+   echo "    randrw        executing a task that mixing random read and"
+   echo "                  random write with fio."
    echo "    collect       collecting disk data with iostat command."
    echo "    help          print this help."
    echo
@@ -63,13 +67,14 @@ function doPressure() {
         do
             case $arg in
                 -t|--try-times)
-                    MAXTRY=$2
+                    echo "in t: $3"
+                    MAXTRY=$3
                     shift # Remove arg key
                     shift # Remove arg val
                 ;;
 
                 -n|--name)
-                    NAME=$2
+                    NAME=$3
                     shift # Remove arg key
                     shift # Remove arg val
                 ;;
@@ -118,6 +123,18 @@ function doPressure() {
 }
 
 function doCollect() {
+
+        # 盘参数
+        BLOCK="$1"
+        shift # remove action(MODE)
+
+        if [[ $BLOCK == -* ]] ;
+        then
+            CollectHelp
+            echo "error: invalid block name"
+            exit 2
+        fi
+
         # 选填参数
         OUTPUT_FILE="out.txt"
         ROWS=100
@@ -142,10 +159,6 @@ function doCollect() {
                 ;;
             esac
         done
-        
-        # 盘参数
-        BLOCK="$1"
-        shift # remove action(MODE)
 
         # 意外参数：屏蔽
         for arg in "$@"
@@ -164,7 +177,7 @@ function doCollect() {
 
 # 动作参数：提取首参数，在枚举中比对，如果没有或为超出枚举的值，则不允许执行。
 case $1 in
-    read|write|randread|randwrite)
+    read|write|rw|randread|randwrite|randrw)
         doPressure $@
         exit 0
     ;;
@@ -181,16 +194,14 @@ case $1 in
     ;;
 
     "")
-    echo "error: action required."
-        echo ""
         MainHelp
+        echo "error: action required."
         exit 1
     ;;
 
     *)
-    echo "error: invalid action \"$1\"."
-        echo ""
         MainHelp
+        echo "error: invalid action \"$1\"."
         exit 1
     ;;
 esac
