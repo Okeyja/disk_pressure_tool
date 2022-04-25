@@ -60,6 +60,22 @@ function doPressure() {
         MODE="$1"
         shift # remove action(MODE)
 
+        # 必位参数
+        BLOCK_DIR="$1"
+        shift # remove block(BLOCK_DIR)
+        if [[ $BLOCK_DIR == "" ]] ;
+        then
+            PressureHelp
+            echo "error: $MODE block parameter required."
+            exit 3
+        fi
+        if [[ $BLOCK_DIR == -* ]] ;
+        then
+            PressureHelp
+            echo "error: invalid block parameter."
+            exit 2
+        fi
+
         # 选填参数
         MAXTRY=100
         NAME="mytest"
@@ -67,14 +83,13 @@ function doPressure() {
         do
             case $arg in
                 -t|--try-times)
-                    echo "in t: $3"
-                    MAXTRY=$3
+                    MAXTRY=$2
                     shift # Remove arg key
                     shift # Remove arg val
                 ;;
 
                 -n|--name)
-                    NAME=$3
+                    NAME=$2
                     shift # Remove arg key
                     shift # Remove arg val
                 ;;
@@ -85,17 +100,6 @@ function doPressure() {
                 ;;
             esac
         done
-
-        # 必位参数
-        BLOCK_DIR="$1"
-        echo "BLOCK_DIR: $BLOCK_DIR"
-        shift # remove block(BLOCK_DIR)
-        if [ $BLOCK_DIR -eq "" ]
-        then
-            PressureHelp
-            echo "error: $MODE block required."
-            exit 3
-        fi
 
         # 意外参数：屏蔽
         for arg in "$@"
